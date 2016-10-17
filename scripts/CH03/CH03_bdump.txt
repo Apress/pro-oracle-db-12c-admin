@@ -1,0 +1,9 @@
+function bdump {
+if [ "$1" = "engdev" ]; then
+  cd /orahome/app/oracle/diag/rdbms/engdev/ENGDEV/trace
+elif [ "$1" = "stage" ]; then
+  cd /orahome/app/oracle/diag/rdbms/stage/STAGE/trace
+fi
+echo "Changing directories to $1 Diag Trace directory"
+pwd
+}

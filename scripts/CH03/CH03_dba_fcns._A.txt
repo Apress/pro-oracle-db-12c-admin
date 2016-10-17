@@ -1,0 +1,28 @@
+# show environment variables in sorted list
+  function envs {
+    if test -z "$1"
+      then /bin/env | /bin/sort
+      else /bin/env | /bin/sort | /bin/grep -i $1
+    fi
+  } # envs
+#-----------------------------------------------------------#
+# find largest files below this point
+function flf {
+  find . -ls | sort -nrk7 | head -10
+}
+#-----------------------------------------------------------#
+# find largest directories consuming space below this point
+function fld {
+  du -S . | sort -nr | head -10
+}
+#-----------------------------------------------------------#
+function bdump {
+  if [ $ORACLE_SID = "o12c" ]; then
+    cd /u01/app/oracle/diag/rdbms/o12c/o12c/trace
+  elif [ $ORACLE_SID = "CDB1" ]; then
+    cd /u01/app/oracle/diag/rdbms/cdb1/CDB1/trace
+  elif [ $ORACLE_SID = "rcat" ]; then
+    cd /u01/app/oracle/diag/rdbms/rcat/rcat/trace
+  fi
+  pwd
+} # bdump

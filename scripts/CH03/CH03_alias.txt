@@ -1,0 +1,6 @@
+alias l.='ls -d .*'
+alias ll='ls -l'
+alias lsd='ls -altr | grep ^d'
+alias sqlp='sqlplus "/ as sysdba"'
+alias shutdb='echo "shutdown immediate;" | sqlp'
+alias startdb='echo "startup;" | sqlp'

@@ -1,0 +1,54 @@
+#!/bin/bash
+PRG=`basename $0`
+DB=$1
+USAGE="Usage: ${PRG} <sid>"
+if [ -z "$DB" ]; then
+  echo "${USAGE}"
+  exit 1
+fi
+# source OS variables
+. /var/opt/oracle/oraset ${DB}
+# Set an alternative location, make sure it exists and has space.
+SWITCH_DIR=/oradump01/${DB}/archivelog
+# Set thresholds for getting concerned and switching.
+THRESH_GET_WORRIED=2000000 # 2Gig from df -k
+THRESH_SPACE_CRIT=1000000  # 1Gig from df -k
+MAILX="/bin/mailx"
+MAIL_LIST="dkuhn@gmail.com "
+BOX=`uname -a | awk '{print$2}'`
+#
+loc=`sqlplus -s <<EOF
+CONNECT / AS sysdba
+SET HEAD OFF FEEDBACK OFF
+SELECT SUBSTR(destination,1,INSTR(destination,'/',1,2)-1)
+FROM v\\$archive_dest WHERE dest_name='LOG_ARCHIVE_DEST_1';
+EOF`
+# The output of df depends on your version of Linux/Unix,
+# you may need to tweak the next line based on that output.
+free_space=`df -k | grep ${loc} | awk '{print $4}'`
+echo box = ${BOX}, sid = ${DB}, Arch Log Mnt Pnt = ${loc}
+echo "free_space        = ${free_space} K"
+echo "THRESH_GET_WORRIED= ${THRESH_GET_WORRIED} K"
+echo "THRESH_SPACE_CRIT = ${THRESH_SPACE_CRIT} K"
+#
+if [ $free_space -le $THRESH_GET_WORRIED ]; then
+$MAILX -s "Arch Redo Space Low ${DB} on $BOX" $MAIL_LIST <<EOF
+Archive log dest space low, box: $BOX, sid: ${DB}, free space: $free_space
+EOF
+fi
+#
+if [ $free_space -le $THRESH_SPACE_CRIT ]; then
+sqlplus -s << EOF
+CONNECT / AS sysdba
+ALTER SYSTEM SET log_archive_dest_1='location=${SWITCH_DIR}';
+ALTER SYSTEM SWITCH LOGFILE;
+EOF
+$MAILX -s "Archive Switch ${DB} on $BOX" $MAIL_LIST <<EOF
+Archive log dest, box: $BOX, sid: ${DB} has switched.
+Then ALTER SYSTEM SET LOG_ARCHIVE_DEST_1='location=<Normal Location>';
+EOF
+else
+  echo no need to switch, ${free_space} KB free on ${loc}
+fi
+#
+exit 0

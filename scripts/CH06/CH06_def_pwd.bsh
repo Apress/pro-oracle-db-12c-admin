@@ -1,0 +1,38 @@
+#!/bin/bash
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 SID"
+  exit 1
+fi
+# Source oracle OS variables via oraset script.
+# See chapter 2 for more details on setting OS variables.
+. /etc/oraset $1
+#
+userlist="system sys dbsnmp dip oracle_ocm outln"
+for u1 in $userlist
+do
+#
+case $u1 in
+system)
+pwd=manager
+cdb=$1
+;;
+sys)
+pwd="change_on_install"
+cdb="$1 as sysdba"
+;;
+*)
+pwd=$u1
+cdb=$1
+esac
+#
+echo "select 'default' from dual;" | \
+  sqlplus -s $u1/$pwd@$cdb | grep default >/dev/null
+if [[ $? -eq 0 ]]; then
+  echo "ALERT: $u1/$pwd@$cdb default password"
+  echo "def pwd $u1 on $cdb" | mailx -s "$u1 pwd default" dkuhn@gmail.com
+else
+  echo "cannot connect to $u1 with default password."
+fi
+done
+exit 0
+

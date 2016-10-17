@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 SID threshold"
+  exit 1
+fi
+# either hard code OS variables or source them from a script.
+# see Chapter 2 for details on using oraset to source oracle OS variables
+. /var/opt/oracle/oraset $1
+#
+crit_var=$(
+sqlplus -s <<EOF
+system/foo
+SET HEAD OFF TERM OFF FEED OFF VERIFY OFF
+COL pct_free FORMAT 999
+SELECT (f.bytes/a.bytes)*100 pct_free,'% free',a.tablespace_name||','
+FROM
+(SELECT NVL(SUM(bytes),0) bytes, x.tablespace_name
+FROM dba_free_space y, dba_tablespaces x
+WHERE x.tablespace_name = y.tablespace_name(+)
+AND x.contents != 'TEMPORARY' AND x.status != 'READ ONLY'
+AND x.tablespace_name  NOT LIKE 'UNDO%'
+GROUP BY x.tablespace_name) f,
+(SELECT SUM(bytes) bytes, tablespace_name
+FROM dba_data_files
+GROUP BY tablespace_name) a
+WHERE a.tablespace_name = f.tablespace_name
+AND  (f.bytes/a.bytes)*100 <= $2
+ORDER BY 1;
+EXIT;
+EOF)
+if [ "$crit_var" = "" ]; then
+  echo "space okay"
+else
+  echo "space not okay"
+  echo $crit_var
+  echo $crit_var | mailx -s "tbsp getting full on $1" dkuhn@gmail.com
+fi
+exit 0

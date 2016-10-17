@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+if [ $# -ne 0 ]; then
+  echo "Usage: $0"
+  exit 1
+fi
+#
+crit_var=$(ps -ef | grep -v grep | grep bsh | wc -l)
+if [ $crit_var -lt 20 ]; then
+  echo $crit_var
+  echo "processes running normal"
+else
+  echo "too many processes"
+  echo $crit_var | mailx -s "too many bsh procs: $1" dkuhn@gmail.com
+fi
+#
+crit_var=$(ps -ef | grep -v grep | grep sqlplus | wc -l)
+if [ $crit_var -lt 30 ]; then
+  echo $crit_var
+  echo "processes running normal"
+else
+  echo "too many processes"
+  echo $crit_var | mailx -s "too many sqlplus procs: $1" dkuhn@gmail.com
+fi
+#
+exit 0

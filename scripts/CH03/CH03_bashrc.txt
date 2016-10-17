@@ -1,0 +1,12 @@
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+#
+# source oracle OS variables
+. /etc/oraset <default_database>
+#
+# User specific aliases and functions
+. $HOME/bin/dba_setup
+. $HOME/bin/dba_fcns
+

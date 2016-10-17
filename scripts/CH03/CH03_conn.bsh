@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 SID"
+  exit 1
+fi
+# either hard code OS variables or source them from a script.
+# see Chapter 2 for details on oraset script to source OS variables
+. /etc/oraset $1
+#
+echo "select 'success' from dual;" | sqlplus -s system/foo@o12c | grep success
+if [[ $? -ne 0 ]]; then
+  echo "problem with $1" | mailx -s "db problem" dkuhn@gmail.com
+else
+  echo "db ok"
+fi
+#
+exit 0
+

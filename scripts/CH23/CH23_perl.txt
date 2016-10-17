@@ -1,0 +1,4 @@
+perl catcon.pl -u sys/foo -s -e -d $ORACLE_HOME/rdbms/admin -b catalog1 catalog.sql > catcon-catalog.log
+perl catcon.pl -u sys/foo -s -e -d $ORACLE_HOME/rdbms/admin -b catproc1 catproc.sql > catcon-catproc.log
+perl catcon.pl -u system/foo -s -e -d $ORACLE_HOME/sqlplus/admin -b pupbld1 pupbld.sql >catcon-pupbld.log
+

@@ -1,0 +1,13 @@
+#!/bin/bash
+BOX=$(uname -a | awk '{print $2}')
+# find all lock files gt 1 day old.
+# Find all lock files in /tmp, if found, find any older than one day
+ls /tmp/*.lock 2>/dev/null && \
+filevar=$(find /tmp/*lock -type f -mtime +1 | wc -l) || filevar=0
+if [ $filevar -gt 0 ]; then
+  echo "$BOX, lockfile issue: $filevar" | \
+  mailx -s "$BOX lockfile problem" dkuhn@gmail.com
+else
+  echo "Lock file ok: $filevar"
+fi
+exit 0

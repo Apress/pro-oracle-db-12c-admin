@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 SID"
+  exit 1
+fi
+# See chapter 2 for details on setting OS variables 
+# Source oracle OS variables with oraset script
+. /etc/oraset $1
+#
+MAILX='/bin/mailx'
+MAIL_LIST='dkuhn@gmail.com'
+BOX=$(uname -a | awk '{print $2}' | cut -f 1 -d'.')
+#
+if [ -f $ORACLE_BASE/diag/tnslsnr/$BOX/listener/trace/listener.log ]; then
+  cat /dev/null > $ORACLE_BASE/diag/tnslsnr/$BOX/listener/trace/listener.log
+fi
+if [ $? -ne 0 ]; then
+  echo "trunc list. problem" | $MAILX -s "trunc list. problem $1" $MAIL_LIST
+else
+  echo "no problem..."
+fi
+exit 0

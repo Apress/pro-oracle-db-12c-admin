@@ -1,0 +1,28 @@
+#!/bin/bash
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 SID"
+  exit 1
+fi
+export ORACLE_SID=o12c
+export ORACLE_HOME=/ora01/app/oracle/product/12.1.0.1/db_1
+#
+sqlplus -s <<EOF
+mv_maint/foo
+WHENEVER SQLERROR EXIT FAILURE
+COL date_id NEW_VALUE hold_date_id
+SELECT to_char(sysdate+30,'yyyymmdd') date_id FROM dual;
+--
+INSERT INTO mv_maint.f_sales(sales_amt, d_date_id)
+VALUES (0, '&hold_date_id');
+ROLLBACK;
+EOF
+#
+if [ $? -ne 0 ]; then
+  mailx -s "Partition range issue: f_sales" dkuhn@gmail.com <<EOF
+  check f_sales high range.
+EOF
+else
+  echo "f_sales ok"
+fi
+exit 0
+

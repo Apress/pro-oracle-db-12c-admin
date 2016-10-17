@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 SID"
+  exit 1
+fi
+# source oracle OS variables
+. /etc/oraset $1
+#
+date
+BOX=`uname -a | awk '{print$2}'`
+rman nocatalog <<EOF
+connect target /
+spool log to $HOME/bin/log/rman_val.log
+set echo on;
+restore database validate;
+EOF
+grep -i error $HOME/bin/log/rman_val.log
+if [ $? -eq 0 ]; then
+  echo "RMAN verify issue $BOX, $1" | \
+  mailx -s "RMAN verify issue $BOX, $1" dkuhn@sun.com
+else
+  echo "no problem..."
+fi
+#
+date
+exit 0

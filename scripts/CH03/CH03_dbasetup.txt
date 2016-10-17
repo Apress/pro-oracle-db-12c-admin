@@ -1,0 +1,18 @@
+# set prompt
+PS1='[\h:\u:${ORACLE_SID}]$ '
+#
+export EDITOR=vi
+export VISUAL=$EDITOR
+export SQLPATH=$HOME/scripts
+set -o vi
+#
+# list directories only
+alias lsd="ls -p | grep /"
+# show top cpu consuming processes
+alias topc="ps -e -o pcpu,pid,user,tty,args | sort -n -k 1 -r | head"
+# show top memory consuming processes
+alias topm="ps -e -o pmem,pid,user,tty,args | sort -n -k 1 -r | head"
+#
+alias sqlp='sqlplus "/ as sysdba"'
+alias shutdb='echo "shutdown immediate;" | sqlp'
+alias startdb='echo "startup;" | sqlp'

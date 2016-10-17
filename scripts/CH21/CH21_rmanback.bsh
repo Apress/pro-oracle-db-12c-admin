@@ -1,0 +1,10 @@
+#!/bin/bash
+# source oracle OS variables; see chapter 2 for an example of oraset script
+. /etc/oraset o12c
+rman target / <<EOF
+spool log to '/orahome/oracle/bin/log/rmanback.log'
+backup database;
+spool log off;
+EOF
+exit 0
+

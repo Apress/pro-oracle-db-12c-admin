@@ -1,0 +1,55 @@
+#!/bin/bash
+HOLDSID=${1}  # SID name
+PRG=`basename $0`
+USAGE="Usage: ${PRG} <database name> "
+if [ -z "${HOLDSID}" ]; then
+  echo "${USAGE}"
+  exit 1
+fi
+#----------------------------------------------
+# source environment variables (see Chapter 2 for details on oraset) 
+. /etc/oraset $HOLDSID
+BOX=`uname -a | awk '{print$2}'`
+MAILX='/bin/mailx'
+MAIL_LIST='dkuhn@gmail.com'
+export NLS_DATE_FORMAT='dd-mon-yyyy hh24:mi:ss'
+date
+#----------------------------------------------
+LOCKFILE=/tmp/$PRG.lock
+if [ -f $LOCKFILE ]; then
+  echo "lock file exists, exiting..."
+  exit 1
+else
+  echo "DO NOT REMOVE, $LOCKFILE" > $LOCKFILE
+fi
+#----------------------------------------------
+rman nocatalog <<EOF
+connect target /
+set echo on;
+show all;
+crosscheck backup;
+crosscheck copy;
+configure controlfile autobackup on;
+configure controlfile autobackup format for device type disk to
+ '/u01/O12C/rman/o12c_ctl_%F.bk';
+configure retention policy to redundancy 1;
+configure           device type disk parallelism 2;
+configure channel 1 device type disk format '/u01/O12C/rman/o12c_%U.bk';
+configure channel 2 device type disk format '/u02/O12C/rman/o12c_%U.bk';
+backup as compressed backupset incremental level=0 database plus archivelog;
+delete noprompt obsolete;
+EOF
+#----------------------------------------------
+if [ $? -ne 0 ]; then
+  echo "RMAN problem..."
+  echo "Check RMAN backups" | $MAILX -s "RMAN issue: $ORACLE_SID on $BOX" $MAIL_LIST
+else
+  echo "RMAN ran okay..."
+fi
+#----------------------------------------------
+if [ -f $LOCKFILE ]; then
+  rm $LOCKFILE
+fi
+#----------------------------------------------
+date
+exit 0

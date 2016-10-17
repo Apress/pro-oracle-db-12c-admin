@@ -1,0 +1,22 @@
+#!/bin/bash
+# Source oracle OS variables, see Chapter 2 for details
+. /etc/oraset $1
+#
+crit_var=$(sqlplus -s <<EOF
+mv_maint/foo
+SET HEAD OFF FEED OFF
+SELECT count(*) FROM user_mviews
+WHERE sysdate-last_refresh_date > 1;
+EOF)
+#
+if [ $crit_var -ne 0 ]; then
+  echo $crit_var
+  echo "mv_ref refresh problem with $1" | mailx -s "mv_ref problem" \
+dkuhn@gmail.com
+else
+  echo $crit_var
+  echo "MVs ok"
+fi
+#
+exit 0
+

@@ -1,0 +1,12 @@
+db_name='CDB'
+enable_pluggable_database=true
+audit_trail='db'
+control_files='/u01/dbfile/CDB/control01.ctl','/u01/dbfile/CDB/control02.ctl'
+db_block_size=8192
+db_domain=''
+memory_target=629145600
+memory_max_target=629145600
+open_cursors=300
+processes=300
+remote_login_passwordfile='EXCLUSIVE'
+undo_tablespace='UNDOTBS1'
